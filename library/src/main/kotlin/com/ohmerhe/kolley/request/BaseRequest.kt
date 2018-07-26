@@ -16,12 +16,11 @@
 package com.ohmerhe.kolley.request
 
 import android.util.Log
+import com.android.volley.DefaultRetryPolicy
 import com.android.volley.NetworkResponse
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.HttpHeaderParser
-import com.ohmerhe.kolley.BuildConfig
-import java.util.*
 
 /**
  * Created by ohmer on 4/14/16.
@@ -66,9 +65,13 @@ abstract class BaseRequest<D>(method: Int, url: String, errorListener: Response.
     }
 
     protected fun log(msg: String) {
-        if (BuildConfig.DEBUG) {
+        if (Http.DEBUG) {
             Log.d(this.javaClass.simpleName, msg)
         }
+    }
+
+    open fun setRetryPolicy(timeout: Int = DefaultRetryPolicy.DEFAULT_TIMEOUT_MS): Request<*> {
+        return super.setRetryPolicy(DefaultRetryPolicy(timeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT))
     }
 }
 

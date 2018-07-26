@@ -15,11 +15,11 @@
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'com.github.dcendents.android-maven'
+//apply plugin: 'com.github.dcendents.android-maven'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '23.0.2'
+    //buildToolsVersion '23.0.2'
 
     defaultConfig {
         minSdkVersion 14
@@ -44,18 +44,25 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:23.2.1'
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.volley:volley:1.0.0'
-    compile 'com.squareup.okhttp3:okhttp:3.3.0'
-    compile 'com.squareup.okhttp3:okhttp-urlconnection:3.3.0'
-    compile 'com.squareup.okio:okio:1.8.0'
-    compile 'org.apache.httpcomponents:httpcore:4.4.3'
-    compile 'com.google.code.gson:gson:2.6.2'
-    compile 'com.jakewharton:disklrucache:2.0.2'
-    testCompile 'junit:junit:4.12'
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'com.github.franmontiel:PersistentCookieJar:v1.0.1'
+    compileOnly 'com.android.support:appcompat-v7:23.4.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    api 'com.android.volley:volley:1.0.0'
+    api 'com.squareup.okio:okio:1.8.0'
+    api('com.squareup.okhttp3:okhttp:3.3.0') {
+        exclude group: "com.squareup.okio"
+    }
+    api('com.squareup.okhttp3:okhttp-urlconnection:3.3.0') {
+        exclude group: "com.squareup.okhttp3"
+    }
+    implementation 'org.apache.httpcomponents:httpcore:4.4.3'
+    api 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.jakewharton:disklrucache:2.0.2'
+    androidTestImplementation 'junit:junit:4.12'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation('com.github.franmontiel:PersistentCookieJar:v1.0.1') {
+        exclude group: "com.squareup.okhttp3"
+    }
+    implementation 'com.github.zhaokaiqiang.klog:library:1.6.0'
 }
 
-apply from: 'bintray.gradle'
+//apply from: 'bintray.gradle'

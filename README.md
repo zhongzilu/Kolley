@@ -70,6 +70,10 @@ Http.get {
     ...
     onStart {  }
 
+	onProgress { write, total ->
+        // handle upload progress
+    }
+
     onSuccess { bytes ->
         // get data
     }
@@ -94,7 +98,7 @@ Http.get {
         "Content-Type" - "application/json"
     }
     ...
-} 
+}
 ```
 
 ### 取消
@@ -131,6 +135,7 @@ Http.getRequestQueue().cancelAll(tag)
 ```
 Http.upload{
     url = "http://192.168.199.110:3000"
+
     files {
         "image" - $imagePath
     }
@@ -138,6 +143,29 @@ Http.upload{
 ```
 
 如果上传文件需要带其他参数，也可以和其他网络请求一样添加在 `params` 下面。
+
+- 使用`onProgress`处理上传进度
+
+上传文件时需要上传进度提示，可以覆写 `onProgress` 节点，更新UI请在 `runOnUiThread` 节点中操作。
+
+```
+Http.upload{
+	url = "http://192.168.199.110:3000"
+
+    files {
+        "image" - $imagePath
+    }
+
+	onProgress { write, total ->
+        log("write bytes: $write & total size: $total")
+        runOnUiThread {
+           //TODO on main thread
+        }
+    }
+}
+```
+
+如果上传文件时出现请求超时的情况，可以使用 `timeout` 来设置超时时长
 
 
 ## 获取图片

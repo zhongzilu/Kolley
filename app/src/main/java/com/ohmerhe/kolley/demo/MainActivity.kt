@@ -15,9 +15,11 @@
 
 package com.ohmerhe.kolley.demo
 
+import android.content.Intent
 import android.graphics.Bitmap
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
@@ -27,10 +29,6 @@ import com.ohmerhe.kolley.image.ImageDisplayOption
 import com.ohmerhe.kolley.request.Http
 import java.io.File
 import java.nio.charset.Charset
-import android.content.Intent
-import android.database.Cursor
-import android.net.Uri
-import android.provider.MediaStore
 
 
 class MainActivity : AppCompatActivity() {
@@ -150,11 +148,21 @@ class MainActivity : AppCompatActivity() {
     private fun uploadImage(picturePath: String) {
         Http.upload{
             url = "http://192.168.199.110:3000"
+            timeout = 5000
+
             params {
                 "test" - "中文测试"
             }
+
             files {
                 "image" - picturePath
+            }
+
+            onProgress { write, total ->
+                log("write bytes: $write & total size: $total")
+//                runOnUiThread {
+//                    //TODO on main thread
+//                }
             }
             onSuccess {
                 log("on success ${it.toString(Charset.defaultCharset())}")

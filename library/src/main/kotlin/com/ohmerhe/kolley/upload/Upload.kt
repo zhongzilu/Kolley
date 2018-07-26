@@ -15,12 +15,11 @@
 
 package com.ohmerhe.kolley.upload
 
+import android.util.Log
 import com.android.volley.Request
 import com.android.volley.Response
 import com.ohmerhe.kolley.request.ByteRequest
-import com.ohmerhe.kolley.request.RequestWrapper
 import com.ohmerhe.kolley.request.Http
-import org.funktionale.partials.partially1
 import java.io.*
 import java.sql.Types
 
@@ -28,20 +27,22 @@ import java.sql.Types
  * Created by ohmer on 5/24/17.
  */
 
-//fun Http.upload(request: RequestWrapper.() -> Unit) = Http.request.partially1(Request.Method.PUT)
-
 class UploadRequest(url: String, errorListener: Response.ErrorListener?)
     : ByteRequest(Request.Method.POST, url, errorListener) {
     private val PROTOCOL_CHARSET = "utf-8"
-    private val curTime: Int
+    private val curTime: Int = (System.currentTimeMillis() / 1000).toInt()
     private var boundaryPrefixed: String? = null
 
     init {
-        curTime = (System.currentTimeMillis() / 1000).toInt()
         boundaryPrefixed = MultipartUtils.BOUNDARY_PREFIX + curTime
     }
 
     var fileParams: MutableMap<String, String> = mutableMapOf()
+
+    /**
+     * Upload progress
+     */
+    var _progress: (Int, Long) -> Unit = {write, total -> }
 
     /**
      * Returns the raw POST body to be sent.
@@ -52,7 +53,7 @@ class UploadRequest(url: String, errorListener: Response.ErrorListener?)
      */
     @Deprecated("", ReplaceWith("getBody()"))
     override fun getPostBody(): ByteArray? {
-        return getBody()
+        return body
     }
 
     override fun getBodyContentType(): String {
@@ -132,10 +133,28 @@ class UploadRequest(url: String, errorListener: Response.ErrorListener?)
         var bufferSize = Math.min(bytesAvailable, maxBufferSize)
         val buffer = ByteArray(bufferSize)
 
+        if (Http.DEBUG){
+            Log.e("UploadRequest-->", "bytesAvailable : $bytesAvailable")
+            Log.e("UploadRequest-->", "bufferSize : $bufferSize")
+        }
+
         var bytesRead = fileInputStream.read(buffer, 0, bufferSize)
+
+        val total = file.length()
+        var count = 0
+        _progress.invoke(count, total)
 
         while (bytesRead > 0) {
             dataOutputStream.write(buffer, 0, bufferSize)
+
+            count += bytesRead
+            _progress.invoke(count, total)
+
+            if (Http.DEBUG) {
+                Log.e("UploadRequest-->", "total : $total")
+                Log.e("UploadRequest-->", "count : $count")
+            }
+
             bytesAvailable = fileInputStream.available()
             bufferSize = Math.min(bytesAvailable, maxBufferSize)
             bytesRead = fileInputStream.read(buffer, 0, bufferSize)

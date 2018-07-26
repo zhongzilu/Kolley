@@ -17,13 +17,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '23.0.2'
+    compileSdkVersion 26
+    //buildToolsVersion '23.0.2'
 
     defaultConfig {
         applicationId "com.ohmerhe.kolley.demo"
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
     }
@@ -51,12 +51,15 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.2.1'
-//    compile project(':library')
-    compile 'com.ohmerhe.kolley:kolley:0.3.0'
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'com.ohmerhe.kotlinthree:andex:0.1.9'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation project(':library')
+    //compile 'com.ohmerhe.kolley:kolley:0.3.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation ('com.ohmerhe.kotlinthree:andex:0.1.9'){
+        exclude group: "com.android.support"
+        exclude group: "org.jetbrains.kotlin"
+    }
 
 }

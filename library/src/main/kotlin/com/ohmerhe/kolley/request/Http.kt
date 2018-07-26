@@ -21,34 +21,39 @@ import com.android.volley.RequestQueue
 import com.android.volley.Response
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.Volley
+import com.franmontiel.persistentcookiejar.PersistentCookieJar
+import com.franmontiel.persistentcookiejar.cache.SetCookieCache
+import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor
 import com.ohmerhe.kolley.upload.UploadRequest
 import okhttp3.OkHttpClient
-import org.funktionale.partials.partially1
 import java.util.*
-import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor
-import com.franmontiel.persistentcookiejar.cache.SetCookieCache
-import com.franmontiel.persistentcookiejar.PersistentCookieJar
-import com.franmontiel.persistentcookiejar.ClearableCookieJar
-
-
 
 /**
  * Created by ohmer on 4/12/16.
  */
+
+fun <P1, P2, R> Function2<P1, P2, R>.partially1(p1: P1): (P2) -> R {
+    return { p2: P2 -> this(p1, p2) }
+}
+
 open class RequestWrapper {
     internal lateinit var _request: ByteRequest
+
     var method: Int = Request.Method.GET
     var url: String = ""
     var raw: String? = null // used for a POST or PUT request.
     var tag: Any? = null
+    var timeout: Int = 5000 //timeout default 5 seconds
+
     private var _start: (() -> Unit) = {}
     private var _success: (ByteArray) -> Unit = {}
     private var _fail: (VolleyError) -> Unit = {}
     private var _finish: (() -> Unit) = {}
+    private var _progress: (Int, Long) -> Unit = {write, total ->}
     protected val _params: MutableMap<String, String> = mutableMapOf() // used for a POST or PUT request.
     protected val _fileParams: MutableMap<String, String> = mutableMapOf() // used for a POST or PUT request.
     protected val _headers: MutableMap<String, String> = mutableMapOf()
-    
+
 
     fun onStart(onStart: () -> Unit) {
         _start = onStart
@@ -66,7 +71,11 @@ open class RequestWrapper {
         _finish = onFinish
     }
 
-    val pairs = fun (map: MutableMap<String,String>, makePairs: RequestPairs.() -> Unit){
+    fun onProgress(onProgress: (Int, Long) -> Unit){
+        _progress = onProgress
+    }
+
+    val pairs = fun(map: MutableMap<String, String>, makePairs: RequestPairs.() -> Unit) {
         val requestPair = RequestPairs()
         requestPair.makePairs()
         map.putAll(requestPair.pairs)
@@ -103,9 +112,11 @@ open class RequestWrapper {
         request.headers = _headers
         // 设置 params
         request.params = _params
-
-        if (request is UploadRequest){
+        // 设置 timeout
+        request.setRetryPolicy(timeout)
+        if (request is UploadRequest) {
             request.fileParams = _fileParams
+            request._progress = _progress
         }
 
     }
@@ -116,7 +127,7 @@ open class RequestWrapper {
             JsonRequest(method, url, raw!!, errorListener)
         } else if (method == Request.Method.POST && _fileParams.isNotEmpty()) {
             UploadRequest(url, errorListener)
-        }else{
+        } else {
             ByteRequest(method, url, errorListener)
         }
     }
@@ -138,6 +149,7 @@ class RequestPairs {
 
 object Http {
     private var mRequestQueue: RequestQueue? = null
+    var DEBUG = false
     fun init(context: Context) {
         // Set up the network to use OKHttpURLConnection as the HTTP client.
         // getApplicationContext() is key, it keeps you from leaking the
@@ -154,7 +166,7 @@ object Http {
     }
 
     val request: (Int, RequestWrapper.() -> Unit) -> Request<ByteArray> = { method, init ->
-        val baseRequest =RequestWrapper()
+        val baseRequest = RequestWrapper()
         baseRequest.method = method
         baseRequest.init() // 执行闭包，完成数据填充
         baseRequest.excute() // 添加到执行队列，自动执行
@@ -171,25 +183,3 @@ object Http {
     val patch = request.partially1(Request.Method.PATCH)
     val upload = request.partially1(Request.Method.POST)
 }
-
-//fun <D> post(context: Context, request: BaseRequestWapper<D>.() -> Unit): Request<D> = request(Request.Method.POST, context,
-//        request)
-//
-//fun <D> put(context: Context, request: BaseRequestWapper<D>.() -> Unit): Request<D> = request(Request.Method.PUT, context,
-//        request)
-//
-//fun <D> delete(context: Context, request: BaseRequestWapper<D>.() -> Unit): Request<D> = request(Request.Method.DELETE, context,
-//        request)
-//
-//fun <D> head(context: Context, request: BaseRequestWapper<D>.() -> Unit): Request<D> = request(Request.Method.HEAD, context,
-//        request)
-//
-//fun <D> options(context: Context, request: BaseRequestWapper<D>.() -> Unit): Request<D> = request(Request.Method.OPTIONS,
-//        context,
-//        request)
-//
-//fun <D> trace(context: Context, request: BaseRequestWapper<D>.() -> Unit): Request<D> = request(Request.Method.TRACE, context,
-//        request)
-//
-//fun <D> patch(context: Context, request: BaseRequestWapper<D>.() -> Unit): Request<D> = request(Request.Method.PATCH, context,
-//        request)

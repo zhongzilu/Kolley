@@ -20,20 +20,12 @@ import android.graphics.BitmapFactory
 import android.os.AsyncTask
 import android.util.Log
 import android.util.LruCache
-
 import com.android.volley.toolbox.ImageLoader
 import com.jakewharton.disklrucache.DiskLruCache
 import com.ohmerhe.kolley.BuildConfig
-
-import java.io.File
-import java.io.FileDescriptor
-import java.io.FileInputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.lang.ref.SoftReference
-import java.util.Collections
-import java.util.HashSet
+import java.util.*
 
 /**
  * Created by ohmer on 1/12/16.

@@ -40,7 +40,7 @@ class JsonRequest(method: Int, url: String,val requestBody: String, errorListene
      */
     @Deprecated("", ReplaceWith("getBody()"))
     override fun getPostBody(): ByteArray? {
-        return getBody()
+        return body
     }
 
     override fun getBodyContentType(): String {
