@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
         val _imageView: ImageView? = findView(R.id.image_view)
         val _imageView2: ImageView? = findView(R.id.image_view2)
         val upload: Button = findView(R.id.upload)
+        val post = findView<Button>(R.id.postRequest)
 
         Http.init(this)
         Http.get {
@@ -126,7 +127,27 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(i, RESULT_LOAD_IMAGE)
         }
 
+        post.setOnClickListener {
+            postRequest()
+        }
+    }
 
+    private fun postRequest() {
+        Http.post {
+            url = "http://httpbin.org/post"
+
+            params {
+                "tag" - "zhongzilu"
+            }
+
+            onSuccess {
+                log("on success ${it.toString(Charset.defaultCharset())}")
+            }
+
+            onFail {
+                log("on fail $it")
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -168,7 +189,7 @@ class MainActivity : AppCompatActivity() {
                 log("on success ${it.toString(Charset.defaultCharset())}")
             }
             onFail { error ->
-                log("on fail ${error.toString()}")
+                log("on fail $error")
             }
         }
     }

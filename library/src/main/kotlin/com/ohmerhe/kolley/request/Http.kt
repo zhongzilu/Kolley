@@ -26,7 +26,6 @@ import com.franmontiel.persistentcookiejar.cache.SetCookieCache
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor
 import com.ohmerhe.kolley.upload.UploadRequest
 import okhttp3.OkHttpClient
-import java.util.*
 
 /**
  * Created by ohmer on 4/12/16.
@@ -51,7 +50,7 @@ open class RequestWrapper {
     private var _finish: (() -> Unit) = {}
     private var _progress: (Int, Long) -> Unit = {write, total ->}
     protected val _params: MutableMap<String, String> = mutableMapOf() // used for a POST or PUT request.
-    protected val _fileParams: MutableMap<String, String> = mutableMapOf() // used for a POST or PUT request.
+    protected val _fileParams: ArrayList<Pair<String, String>> = ArrayList() // used for a POST or PUT request.
     protected val _headers: MutableMap<String, String> = mutableMapOf()
 
 
@@ -75,15 +74,23 @@ open class RequestWrapper {
         _progress = onProgress
     }
 
-    val pairs = fun(map: MutableMap<String, String>, makePairs: RequestPairs.() -> Unit) {
+    private val pairs = fun(map: MutableMap<String, String>, makePairs: RequestPairs.() -> Unit) {
         val requestPair = RequestPairs()
         requestPair.makePairs()
-        map.putAll(requestPair.pairs)
+        requestPair.pairs.forEach {
+            map.put(it.first, it.second)
+        }
+    }
+
+    private val filePairs = fun(map: ArrayList<Pair<String, String>>, makePairs: RequestPairs.() -> Unit) {
+        val requestPair = RequestPairs()
+        requestPair.makePairs()
+        map.addAll(requestPair.pairs)
     }
 
     val params = pairs.partially1(_params)
     val headers = pairs.partially1(_headers)
-    val files = pairs.partially1(_fileParams)
+    val files = filePairs.partially1(_fileParams)
 
     fun excute() {
         var url = url
@@ -141,23 +148,33 @@ open class RequestWrapper {
 }
 
 class RequestPairs {
-    var pairs: MutableMap<String, String> = HashMap()
+//    var pairs: MutableMap<String, String> = HashMap()
+    var pairs: ArrayList<Pair<String, String>> = ArrayList()
     operator fun String.minus(value: String) {
-        pairs.put(this, value)
+//        pairs.put(this, value)
+        pairs.add(Pair(this, value))
     }
 }
 
 object Http {
     private var mRequestQueue: RequestQueue? = null
-    var DEBUG = false
+    var DEBUG = true
+    var LOG_LEVEL = HttpLoggingInterceptor.Level.BODY
     fun init(context: Context) {
         // Set up the network to use OKHttpURLConnection as the HTTP client.
         // getApplicationContext() is key, it keeps you from leaking the
         // Activity or BroadcastReceiver if someone passes one in.
         val cookieJar = PersistentCookieJar(SetCookieCache(), SharedPrefsCookiePersistor(context))
         val okHttpClient = OkHttpClient.Builder()
-                .cookieJar(cookieJar)
+                .apply {
+                    cookieJar(cookieJar)
+
+                    if (DEBUG){
+                        addInterceptor(HttpLoggingInterceptor().setLevel(LOG_LEVEL))
+                    }
+                }
                 .build()
+
         mRequestQueue = Volley.newRequestQueue(context.applicationContext, OkHttpStack(okHttpClient))
     }
 

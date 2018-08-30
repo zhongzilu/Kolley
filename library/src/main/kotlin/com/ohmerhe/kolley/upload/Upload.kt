@@ -37,7 +37,8 @@ class UploadRequest(url: String, errorListener: Response.ErrorListener?)
         boundaryPrefixed = MultipartUtils.BOUNDARY_PREFIX + curTime
     }
 
-    var fileParams: MutableMap<String, String> = mutableMapOf()
+//    var fileParams: MutableMap<String, String> = mutableMapOf()
+    var fileParams: ArrayList<Pair<String, String>> = ArrayList()
 
     /**
      * Upload progress
